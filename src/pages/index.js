@@ -1,28 +1,34 @@
 import React, { useContext } from 'react';
 import axios from 'axios';
 import AppContext from 'context/AppContext';
+import Image from 'next/image';
 
-function Home({ products, error }) {
+function products({ products, error }) {
   const { addToCart } = useContext(AppContext);
 
   const handleCLick = item => {
 		addToCart(item);
 	}
-
   if(error) {
     return <div>An error occured: {error.message}</div>;
   }
 
   return (
     <div className="bg-white">
-      <div className="max-w-2xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:max-w-7xl lg:px-8">
+      <div className="max-w-2xl lg:pt-6 mx-auto px-4 sm:px-6 lg:max-w-7xl lg:px-8">
         <h2 className="text-tittle font-Roboto tracking-tight text-gray-900">Product Lists</h2>
 
         <div className="mt-6 grid grid-cols-1 gap-y-10 gap-x-6 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
           {products.data.map(product => (
+            console.log(product),
             <div key={product.id} className="group relative">
               <div className="w-full min-h-80 bg-gray-200 aspect-w-1 aspect-h-1 rounded-md overflow-hidden group-hover:opacity-75 lg:h-80 lg:aspect-none">
-                <img src={""} alt={product.attributes.tittle} className="w-full h-full object-center object-cover lg:w-full lg:h-full" />
+                <img
+                  src={`${process.env.apiLocalHost}`+product.attributes.img.data[0].attributes.url}
+                  layout='fill'
+                  alt={product.attributes.tittle}
+                  className="w-full h-full object-center object-cover lg:w-full lg:h-full"
+                />
               </div>
               <div className="mt-4 flex justify-between">
                 <div>
@@ -49,13 +55,24 @@ function Home({ products, error }) {
   );
 };
 
-Home.getInitialProps = async() => {
+products.getInitialProps = async() => {
   try {
-    const res = await axios.get(`${process.env.apiPublicUrl}/products`)
+    //
+    const qs = require('qs');
+    const query = qs.stringify({
+      populate: {
+        img: {
+          fields: ['name', 'url'],
+        },
+      },
+    }, {
+      encodeValuesOnly: true,
+    });
+    //
+    const resOne = await axios.get(`${process.env.apiPublicUrl}/products?${query}`);
+    console.log(resOne);
 
-    console.log(res);
-
-    const products = res.data;
+    const products = resOne.data;
     return { products };
 
   } catch (error) {
@@ -63,14 +80,4 @@ Home.getInitialProps = async() => {
   }
 };
 
-export default Home;
-
-/**
-axios.get('http://localhost:1338/api/upload/files').then(response => {
-  console.log(response.data);
-});
-
-axios.get(`${process.env.apiPublicUrl}/products`).then(response => {
-  console.log(response.data.data[0].attributes);
-});
-*/
+export default products;

@@ -2,7 +2,6 @@ import React, { useContext } from 'react';
 import axios from 'axios';
 import AppContext from 'context/AppContext';
 import Image from 'next/image';
-import { data } from 'autoprefixer';
 
 function products({ products, error }) {
   const { addToCart } = useContext(AppContext);
@@ -21,16 +20,15 @@ function products({ products, error }) {
 
         <div className="mt-6 grid grid-cols-1 gap-y-10 gap-x-6 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
           {products.data.map(product => (
+            console.log(product),
             <div key={product.id} className="group relative">
               <div className="w-full min-h-80 bg-gray-200 aspect-w-1 aspect-h-1 rounded-md overflow-hidden group-hover:opacity-75 lg:h-80 lg:aspect-none">
-                {data.attributes && (
-                    <Image
-                      src={process.env.imagenURL + img.data.attributes.url}
-                      layout='fill'
-                      alt={product.attributes.tittle}
-                      className="w-full h-full object-center object-cover lg:w-full lg:h-full"
-                    />
-                )}
+                <img
+                  src={`${process.env.apiLocalHost}`+product.attributes.img.data[0].attributes.url}
+                  layout='fill'
+                  alt={product.attributes.tittle}
+                  className="w-full h-full object-center object-cover lg:w-full lg:h-full"
+                />
               </div>
               <div className="mt-4 flex justify-between">
                 <div>
@@ -59,7 +57,19 @@ function products({ products, error }) {
 
 products.getInitialProps = async() => {
   try {
-    const resOne = await axios.get(`${process.env.apiPublicUrl}/products`);
+    //
+    const qs = require('qs');
+    const query = qs.stringify({
+      populate: {
+        img: {
+          fields: ['name', 'url'],
+        },
+      },
+    }, {
+      encodeValuesOnly: true,
+    });
+    //
+    const resOne = await axios.get(`${process.env.apiPublicUrl}/products?${query}`);
     console.log(resOne);
 
     const products = resOne.data;
